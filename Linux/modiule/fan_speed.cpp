@@ -3,16 +3,21 @@
 #include <string>
 #include <vector>
 #include <dirent.h>
+#include <unistd.h> // For sleep function
 
-// Function to set fan speed
-void setFanSpeed(const std::string& fanPath, int speed) {
-    std::ofstream file(fanPath); // Open the fan control file
+// Function to set fan speed in RPM
+void setFanSpeedRPM(const std::string& fanPath, int rpm) {
+    // Convert RPM to PWM value (if necessary)
+    int pwmValue = rpm * 255 / 5000; // Example conversion, adjust as needed
+
+    // Write PWM value to fan control file
+    std::ofstream file(fanPath);
     if (file.is_open()) {
-        file << speed; // Set the fan speed
+        file << pwmValue;
         file.close();
-        std::cout << "Fan speed set to " << speed << " for fan: " << fanPath << std::endl;
+        std::cout << "Fan speed set to " << rpm << " RPM for fan: " << fanPath << std::endl;
     } else {
-        std::cerr << "Unable to open fan speed control file for fan: " << fanPath << std::endl;
+        std::cerr << "Unable to open fan control file for fan: " << fanPath << std::endl;
     }
 }
 
@@ -38,15 +43,15 @@ std::vector<std::string> findFanControlFiles(const std::string& baseDir) {
 
 int main() {
     const std::string baseDir = "/sys/class/hwmon"; // Base directory for fan control files
-    const int fanSpeed = 80; // Example fan speed (percentage)
+    const int targetFanRPM = 2000; // Example target fan speed in RPM
 
     // Find fan control files
     std::vector<std::string> fanPaths = findFanControlFiles(baseDir);
 
     // Set fan speed for each fan
     for (const auto& fanPath : fanPaths) {
-        setFanSpeed(fanPath, fanSpeed);
+        setFanSpeedRPM(fanPath, targetFanRPM);
     }
 
     return 0;
-} 
+}
